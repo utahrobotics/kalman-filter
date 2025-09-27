@@ -54,14 +54,14 @@ pub type SimpleSquareMatrix<const SIZE: usize> = Matrix<f64, Const<SIZE>, Const<
 pub struct KalmanFilter<const STATE_FACTORS: usize> {
     current_state: SimpleVector<STATE_FACTORS>,
     current_covariance: SimpleSquareMatrix<STATE_FACTORS>,
-    evolution_function: fn(
+    evolution_function: Box<dyn Fn(
         SimpleVector<STATE_FACTORS>, 
         SimpleSquareMatrix<STATE_FACTORS>, 
         f64
     ) -> (
         SimpleVector<STATE_FACTORS>, 
         SimpleSquareMatrix<STATE_FACTORS>
-    ),
+    )>,
 }
 
 
@@ -73,19 +73,19 @@ impl<const STATE_FACTORS: usize> KalmanFilter<STATE_FACTORS> {
     pub fn new(
         current_state: SimpleVector<STATE_FACTORS>,
         current_covariance: SimpleSquareMatrix<STATE_FACTORS>,
-        evolution_function: fn(
+        evolution_function: impl Fn(
             SimpleVector<STATE_FACTORS>, 
             SimpleSquareMatrix<STATE_FACTORS>, 
             f64
         ) -> (
             SimpleVector<STATE_FACTORS>, 
             SimpleSquareMatrix<STATE_FACTORS>
-        ),
+        ) + 'static,
     ) -> Self {
         Self {
             current_state,
             current_covariance,
-            evolution_function
+            evolution_function:Box::new(evolution_function)
         }
     }
 
