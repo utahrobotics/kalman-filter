@@ -127,12 +127,24 @@ impl<const STATE_FACTORS: usize> KalmanFilter<STATE_FACTORS> {
     /// of what the true value is likely to be.
     /// 
     /// The math for this is fairly crazy. You have been warned.
+    /// The current implementation uses this math 
+    /// (https://math.stackexchange.com/questions/157172/product-of-two-multivariate-gaussians-distributions),
+    /// although it doesn't match numerical solutions. The prior and marginal probability
+    /// are currently assumed to be improper flat distributions.
     fn combine_measurements(
         mean_1: SimpleVector<STATE_FACTORS>,
         covariance_1: SimpleSquareMatrix<STATE_FACTORS>,
         mean_2: SimpleVector<STATE_FACTORS>,
         covariance_2: SimpleSquareMatrix<STATE_FACTORS>,
     ) -> (SimpleVector<STATE_FACTORS>, SimpleSquareMatrix<STATE_FACTORS>) {
-        todo!()
+
+        let inverse_sum = 
+            (covariance_1 + covariance_2).try_inverse().expect("Singular covariance matrices are not allowed.");
+
+        (
+            covariance_2 * inverse_sum * mean_1 + covariance_1 * inverse_sum * mean_2,
+            covariance_1 * inverse_sum * covariance_2,
+        )
+        
     }
 }
