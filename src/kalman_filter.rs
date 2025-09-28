@@ -95,20 +95,20 @@ impl<const STATE_FACTORS: usize> KalmanFilter<STATE_FACTORS> {
     pub fn step(
         &mut self,
         dt: f64, 
-        measurement: SimpleVector<STATE_FACTORS>,
-        measurement_covarience: SimpleSquareMatrix<STATE_FACTORS>
+        measurement: &SimpleVector<STATE_FACTORS>,
+        measurement_covariance: &SimpleSquareMatrix<STATE_FACTORS>
     ) {
-        let (predicted_mean, predicted_covarience) = (self.evolution_function)(
+        let (predicted_mean, predicted_covariance) = (self.evolution_function)(
             self.current_state,
             self.current_covariance,
             dt
         );
 
         (self.current_state, self.current_covariance) = Self::combine_measurements(
-            measurement, 
-            measurement_covarience, 
-            predicted_mean, 
-            predicted_covarience
+            &measurement, 
+            &measurement_covariance, 
+            &predicted_mean, 
+            &predicted_covariance
         );
     }
 
@@ -132,10 +132,10 @@ impl<const STATE_FACTORS: usize> KalmanFilter<STATE_FACTORS> {
     /// although it doesn't match numerical solutions. The prior and marginal probability
     /// are currently assumed to be improper flat distributions.
     fn combine_measurements(
-        mean_1: SimpleVector<STATE_FACTORS>,
-        covariance_1: SimpleSquareMatrix<STATE_FACTORS>,
-        mean_2: SimpleVector<STATE_FACTORS>,
-        covariance_2: SimpleSquareMatrix<STATE_FACTORS>,
+        mean_1: &SimpleVector<STATE_FACTORS>,
+        covariance_1: &SimpleSquareMatrix<STATE_FACTORS>,
+        mean_2: &SimpleVector<STATE_FACTORS>,
+        covariance_2: &SimpleSquareMatrix<STATE_FACTORS>,
     ) -> (SimpleVector<STATE_FACTORS>, SimpleSquareMatrix<STATE_FACTORS>) {
 
         let inverse_sum = 
