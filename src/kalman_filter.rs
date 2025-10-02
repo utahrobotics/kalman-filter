@@ -37,7 +37,9 @@ pub type SimpleSquareMatrix<const SIZE: usize> = Matrix<f64, Const<SIZE>, Const<
 /// 
 /// ### Usage steps:
 /// * Initialize and store
-/// * Use .step() to step time forward (mutates state)
+/// * Use .step_time() to step time forward (mutates state)
+/// * Include new measurements using .apply_measurements (mutates state)
+///   (this can be combined with the previous state using .step_with_measurement)
 /// * Extract state with .get_current_state() and .get_current_covariance()
 /// 
 /// ## Notes
@@ -92,23 +94,43 @@ impl<const STATE_FACTORS: usize> KalmanFilter<STATE_FACTORS> {
 
     /// Pushes the state of the filter forward by some time. Mutates the object.
     /// Requires a time step, measurement, and the variance in that measurement.
-    pub fn step(
+    pub fn step_with_measurement(
         &mut self,
         dt: f64, 
         measurement: &SimpleVector<STATE_FACTORS>,
         measurement_covariance: &SimpleSquareMatrix<STATE_FACTORS>
     ) {
-        let (predicted_mean, predicted_covariance) = (self.evolution_function)(
+        self.step_time(dt);
+        self.apply_measurement(measurement, measurement_covariance);
+    }
+
+
+    /// Move time forward by a specified value in the model. This involves using the
+    /// evolution function provided at construction.
+    /// NOTE: calling this function two times with dt=0.5 may not be the same as
+    /// calling it once with dt=1. This is only dependent on the evolution function.
+    pub fn step_time(&mut self, dt: f64) {
+        (self.current_state, self.current_covariance) = (self.evolution_function)(
             self.current_state,
             self.current_covariance,
             dt
         );
+    }
 
+
+    /// Apply newly collected data to the model. This involves merging the current
+    /// predicted state of the system with the new data. This function does not include
+    /// the passage of time. If this is desired, use .step_time or .step_with_measurement.
+    pub fn apply_measurement(
+        &mut self,
+        measurement: &SimpleVector<STATE_FACTORS>,
+        measurement_covariance: &SimpleSquareMatrix<STATE_FACTORS>
+    ) {
         (self.current_state, self.current_covariance) = Self::combine_measurements(
-            &measurement, 
-            &measurement_covariance, 
-            &predicted_mean, 
-            &predicted_covariance
+            &measurement,
+            &measurement_covariance,
+            &self.current_state,
+            &self.current_covariance,
         );
     }
 

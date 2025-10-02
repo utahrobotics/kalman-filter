@@ -38,7 +38,7 @@ fn simple_1d() {
 	assert_eq!(*filter.get_current_covariance().index(0), 1.0);
 
 	// Step 1
-	filter.step(
+	filter.step_with_measurement(
 		0.1, 
 		&Vector1::new(2.0), 
 		&Matrix1::new(2.0)
@@ -48,7 +48,7 @@ fn simple_1d() {
 	assert_float_eq(0.6666666666666666, *filter.get_current_covariance().index(0), 1e-6);
 
 	// Step 2
-	filter.step(
+	filter.step_with_measurement(
 		0.1, 
 		&Vector1::new(2.0), 
 		&Matrix1::new(2.0)
